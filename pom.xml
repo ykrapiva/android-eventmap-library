@@ -10,6 +10,20 @@
 
     <name>Event Map - Parent</name>
     <description>Event Map Library Parent</description>
+    <url>https://github.com/ykrapiva/android-eventmap-library</url>
+    <developers>
+        <developer>
+            <id>ykrapiva</id>
+            <name>Ievgen Krapyva</name>
+        </developer>
+    </developers>
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
 
     <scm>
         <connection>scm:git@github.com:ykrapiva/android-eventmap-library.git</connection>
