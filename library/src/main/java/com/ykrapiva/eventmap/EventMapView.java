@@ -79,6 +79,13 @@ public class EventMapView<T extends EventMapSeat> extends GLSurfaceView {
         this.mClickListener = mClickListener;
     }
 
+    public void updateSeatColor(T seat) {
+        if (mEventMap != null) {
+            mEventMap.updateColor(seat);
+            requestRender();
+        }
+    }
+
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         mScaleDetector.onTouchEvent(event);
@@ -103,10 +110,6 @@ public class EventMapView<T extends EventMapSeat> extends GLSurfaceView {
         if (mClickListener != null) {
             mClickListener.onSeatClicked(seat);
         }
-        if (mEventMap != null) {
-            mEventMap.updateColor(seat);
-        }
-        requestRender();
     }
 
     public void setEventMap(EventMap<T> world) {
@@ -173,10 +176,18 @@ public class EventMapView<T extends EventMapSeat> extends GLSurfaceView {
         public boolean onSingleTapUp(final MotionEvent e) {
             final CountDownLatch clickResultReadyLatch = new CountDownLatch(1);
 
+            int[] location = new int[2];
+
+            getLocationOnScreen(location);
+            float rawX = e.getRawX();
+            float rawY = e.getRawY();
+            final float x = rawX - location[0];
+            final float y = rawY - location[1];
+
             queueEvent(new Runnable() {
                 @Override
                 public void run() {
-                    mRenderer.onClick(e.getX(), e.getY(), clickResultReadyLatch);
+                    mRenderer.onClick(x, y, clickResultReadyLatch);
                 }
             });
 

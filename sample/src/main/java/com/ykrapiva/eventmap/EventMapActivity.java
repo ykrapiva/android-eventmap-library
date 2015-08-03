@@ -73,6 +73,8 @@ public class EventMapActivity extends Activity implements EventMapView.EventMapC
             case NOT_AVAILABLE:
                 break;
         }
+
+        mEventMapView.updateSeatColor(seat);
     }
 
     @Override
