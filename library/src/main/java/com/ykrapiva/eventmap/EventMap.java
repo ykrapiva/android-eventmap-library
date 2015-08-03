@@ -107,7 +107,7 @@ public class EventMap<T extends EventMapSeat> {
     }
 
     /**
-     * Set background image. If image dimensions are not of power of two - it is converted and original bitmap is recycled.
+     * Set background image. If image dimensions are not of power of two - it is converted.
      */
     public void setBackground(Bitmap background) {
         this.mBackgroundBitmap = background;
@@ -122,9 +122,6 @@ public class EventMap<T extends EventMapSeat> {
 
             if (widthPo2 != backgroundOriginalWidth || heightPo2 != backgroundOriginalHeight) {
                 mBackgroundBitmap = Bitmap.createScaledBitmap(mBackgroundBitmap, widthPo2, heightPo2, false);
-                if (mBackgroundBitmap != background) {
-                    background.recycle();
-                }
             }
         }
 

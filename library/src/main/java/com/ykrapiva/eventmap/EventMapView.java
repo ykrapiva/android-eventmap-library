@@ -112,8 +112,8 @@ public class EventMapView<T extends EventMapSeat> extends GLSurfaceView {
         }
     }
 
-    public void setEventMap(EventMap<T> world) {
-        mEventMap = world;
+    public void setEventMap(EventMap<T> eventMap) {
+        mEventMap = eventMap;
         mRenderer.setEventMap(mEventMap);
         requestRender();
     }
