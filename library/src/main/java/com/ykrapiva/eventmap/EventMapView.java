@@ -109,10 +109,14 @@ public class EventMapView<T extends EventMapSeat> extends GLSurfaceView {
         requestRender();
     }
 
-    public void setWorld(EventMap<T> world) {
+    public void setEventMap(EventMap<T> world) {
         mEventMap = world;
         mRenderer.setEventMap(mEventMap);
         requestRender();
+    }
+
+    public EventMap<T> getEventMap() {
+        return mEventMap;
     }
 
     private void tickScrollAnimation() {

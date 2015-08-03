@@ -32,6 +32,7 @@ class EventMapRenderer<T extends EventMapSeat> implements GLSurfaceView.Renderer
     private int mScreenHeight;
 
     private EventMap<T> mEventMap;
+    private boolean mSceneSetupRequired;
 
     private final float[] mClearColor = new float[4];
     private volatile float mScaleFactor = 1.0f;
@@ -58,12 +59,17 @@ class EventMapRenderer<T extends EventMapSeat> implements GLSurfaceView.Renderer
             mEventMap.notifyNeedReinitialization();
         }
 
-        setupScene(gl);
-        calculateOffsetBounds();
+        mSceneSetupRequired = true;
     }
 
     @Override
     public void onDrawFrame(GL10 gl) {
+        if (mSceneSetupRequired) {
+            setupScene(gl);
+            calculateOffsetBounds();
+            mSceneSetupRequired = false;
+        }
+
         // Handle user input
         if (mClickPoint != null && mEventMap != null && mClickedObjectResultAvailableLatch != null) {
             Ray ray = new Ray(gl, mScreenWidth, mScreenHeight, mClickPoint.x, mClickPoint.y);
@@ -102,6 +108,7 @@ class EventMapRenderer<T extends EventMapSeat> implements GLSurfaceView.Renderer
 
     void setEventMap(EventMap<T> eventMap) {
         this.mEventMap = eventMap;
+        mSceneSetupRequired = true;
     }
 
     void setClearColor(int color) {

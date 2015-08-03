@@ -46,7 +46,7 @@ public class EventMapActivity extends Activity implements EventMapView.EventMapC
 
         mEventMapView = (EventMapView<Seat>) findViewById(R.id.event_map_view);
         mEventMapView.setBackgroundColor(Color.WHITE);
-        mEventMapView.setWorld(mEventMap);
+        mEventMapView.setEventMap(mEventMap);
         mEventMapView.setClickListener(this);
     }
 
