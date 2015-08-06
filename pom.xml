@@ -8,7 +8,7 @@
         <version>7</version>
     </parent>
 
-    <groupId>com.ykrapiva</groupId>
+    <groupId>com.github.ykrapiva.eventmap</groupId>
     <artifactId>eventmap-library-parent</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>

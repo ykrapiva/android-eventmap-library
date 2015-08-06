@@ -1,6 +1,7 @@
-package com.ykrapiva.eventmap;
+package com.github.ykrapiva.eventmap;
 
 import android.graphics.RectF;
+import com.github.ykrapiva.eventmap.EventMapSeat;
 
 import java.util.Map;
 

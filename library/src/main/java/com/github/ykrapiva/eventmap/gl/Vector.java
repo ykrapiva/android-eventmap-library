@@ -1,4 +1,4 @@
-package com.ykrapiva.eventmap.gl;
+package com.github.ykrapiva.eventmap.gl;
 
 public class Vector {
     // dot product (3D) which allows vector operations in arguments

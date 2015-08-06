@@ -1,4 +1,4 @@
-package com.ykrapiva.eventmap;
+package com.github.ykrapiva.eventmap;
 
 import android.animation.ValueAnimator;
 import android.content.Context;
@@ -9,7 +9,7 @@ import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.widget.Scroller;
-import com.ykrapiva.eventmap.gl.MatrixTrackingGL;
+import com.github.ykrapiva.eventmap.gl.MatrixTrackingGL;
 
 import javax.microedition.khronos.opengles.GL;
 import java.util.concurrent.CountDownLatch;

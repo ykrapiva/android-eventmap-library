@@ -1,11 +1,11 @@
-package com.ykrapiva.eventmap;
+package com.github.ykrapiva.eventmap;
 
 import android.graphics.PointF;
 import android.graphics.RectF;
 import android.opengl.GLSurfaceView;
 import android.opengl.GLU;
-import com.ykrapiva.eventmap.gl.GLUtils;
-import com.ykrapiva.eventmap.gl.Ray;
+import com.github.ykrapiva.eventmap.gl.GLUtils;
+import com.github.ykrapiva.eventmap.gl.Ray;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;

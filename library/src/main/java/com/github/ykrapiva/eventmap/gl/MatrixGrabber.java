@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.ykrapiva.eventmap.gl;
+package com.github.ykrapiva.eventmap.gl;
 
 import javax.microedition.khronos.opengles.GL10;
 

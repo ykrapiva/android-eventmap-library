@@ -1,4 +1,4 @@
-package com.ykrapiva.eventmap.gl;
+package com.github.ykrapiva.eventmap.gl;
 
 import android.opengl.GLU;
 import android.opengl.Matrix;

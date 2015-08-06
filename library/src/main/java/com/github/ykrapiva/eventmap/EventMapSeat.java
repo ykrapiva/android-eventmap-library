@@ -1,4 +1,4 @@
-package com.ykrapiva.eventmap;
+package com.github.ykrapiva.eventmap;
 
 import android.graphics.RectF;
 

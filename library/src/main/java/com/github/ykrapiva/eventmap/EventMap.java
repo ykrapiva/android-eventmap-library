@@ -1,14 +1,14 @@
-package com.ykrapiva.eventmap;
+package com.github.ykrapiva.eventmap;
 
 import android.annotation.SuppressLint;
 import android.graphics.*;
 import android.opengl.Matrix;
 import android.text.TextUtils;
 import com.android.texample.GLText;
-import com.ykrapiva.eventmap.gl.GLUtils;
-import com.ykrapiva.eventmap.gl.MatrixGrabber;
-import com.ykrapiva.eventmap.gl.Ray;
-import com.ykrapiva.eventmap.gl.Triangle;
+import com.github.ykrapiva.eventmap.gl.GLUtils;
+import com.github.ykrapiva.eventmap.gl.MatrixGrabber;
+import com.github.ykrapiva.eventmap.gl.Ray;
+import com.github.ykrapiva.eventmap.gl.Triangle;
 
 import javax.microedition.khronos.opengles.GL10;
 import java.io.ByteArrayInputStream;

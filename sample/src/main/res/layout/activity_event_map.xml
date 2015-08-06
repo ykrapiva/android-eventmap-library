@@ -5,7 +5,7 @@
               android:layout_height="match_parent"
               android:background="#ff054a6b">
 
-    <com.ykrapiva.eventmap.EventMapView
+    <com.github.ykrapiva.eventmap.EventMapView
         android:id="@+id/event_map_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
