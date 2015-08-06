@@ -31,8 +31,8 @@
     </licenses>
 
     <scm>
-        <connection>scm:git:git@github.com:ykrapiva/android-eventmap-library.git</connection>
-        <developerConnection>scm:git:git@github.com:ykrapiva/android-eventmap-library.git</developerConnection>
+        <connection>scm:git:https://github.com/ykrapiva/android-eventmap-library.git</connection>
+        <developerConnection>scm:git:https://github.com/ykrapiva/android-eventmap-library.git</developerConnection>
         <url>https://github.com/ykrapiva/android-eventmap-library</url>
         <tag>HEAD</tag>
     </scm>
