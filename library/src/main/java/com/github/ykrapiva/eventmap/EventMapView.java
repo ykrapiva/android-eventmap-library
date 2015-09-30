@@ -88,7 +88,7 @@ public class EventMapView<T extends EventMapSeat> extends GLSurfaceView {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        mScaleDetector.onTouchEvent(event);
+        boolean scaleResult = mScaleDetector.onTouchEvent(event);
         boolean result = mGestureDetector.onTouchEvent(event);
 
         // If the GestureDetector doesn't want this event, do some custom processing.
@@ -103,7 +103,7 @@ public class EventMapView<T extends EventMapSeat> extends GLSurfaceView {
             }
         }
 
-        return true;
+        return scaleResult | result;
     }
 
     private void onSeatClicked(T seat) {
@@ -120,6 +120,10 @@ public class EventMapView<T extends EventMapSeat> extends GLSurfaceView {
 
     public EventMap<T> getEventMap() {
         return mEventMap;
+    }
+
+    public float getScaleFactor() {
+        return mRenderer.getScaleFactor();
     }
 
     private void tickScrollAnimation() {
@@ -234,7 +238,7 @@ public class EventMapView<T extends EventMapSeat> extends GLSurfaceView {
             if (isAnimationRunning()) {
                 stopScrolling();
             }
-            return false;
+            return true;
         }
     }
 
