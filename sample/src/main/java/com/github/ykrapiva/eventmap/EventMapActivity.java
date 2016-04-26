@@ -16,14 +16,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class EventMapActivity extends Activity implements EventMapView.EventMapClickListener<Seat> {
+public class EventMapActivity extends Activity implements EventMapView.EventMapSeatTouchListener<Figure> {
     private static final String TAG = EventMapActivity.class.getSimpleName();
     private static final String BUNDLE_KEY_SELECTED_PLACES = "selected.place.ids";
     private static final int DEFAULT_SELECTED_PLACE_COLOR = 0xFF00FF00;
+    private static final int DEFAULT_PRESSED_PLACE_COLOR = 0xFFFFFF00;
     private static final int DEFAULT_NOT_AVAILABLE_PLACE_COLOR = Color.TRANSPARENT;
 
-    private EventMapView<Seat> mEventMapView;
-    private EventMap<Seat> mEventMap;
+    private EventMapView<Figure> mEventMapView;
+    private EventMap<Figure> mEventMap;
 
     String mMapFileName = "sample_map.json";
 
@@ -37,14 +38,14 @@ public class EventMapActivity extends Activity implements EventMapView.EventMapC
 
         if (savedInstanceState != null) {
             List<Long> selectedPlaceIds = (List<Long>) savedInstanceState.getSerializable(BUNDLE_KEY_SELECTED_PLACES);
-            for (Seat seat : mEventMap.getSeats()) {
+            for (Figure seat : mEventMap.getSeats()) {
                 if (selectedPlaceIds.contains(seat.getPlaceId())) {
-                    seat.setState(Seat.State.SELECTED);
+                    seat.setState(Figure.State.SELECTED);
                 }
             }
         }
 
-        mEventMapView = (EventMapView<Seat>) findViewById(R.id.event_map_view);
+        mEventMapView = (EventMapView<Figure>) findViewById(R.id.event_map_view);
         mEventMapView.setBackgroundColor(Color.WHITE);
         mEventMapView.setEventMap(mEventMap);
         mEventMapView.setClickListener(this);
@@ -63,18 +64,39 @@ public class EventMapActivity extends Activity implements EventMapView.EventMapC
     }
 
     @Override
-    public void onSeatClicked(Seat seat) {
+    public boolean onSeatClicked(Figure seat) {
         switch (seat.getState()) {
             case SELECTED:
-                seat.setState(Seat.State.AVAILABLE);
+                seat.resetState();
                 break;
             case AVAILABLE:
-                seat.setState(Seat.State.SELECTED);
+            case PRESSED:
+                seat.setState(Figure.State.SELECTED);
+                break;
             case NOT_AVAILABLE:
                 break;
         }
 
         mEventMapView.updateSeatColor(seat);
+        return true;
+    }
+
+    @Override
+    public boolean onSeatPressed(Figure seat) {
+        switch (seat.getState()) {
+            case AVAILABLE:
+                seat.setState(Figure.State.PRESSED);
+                break;
+        }
+        mEventMapView.updateSeatColor(seat);
+        return true;
+    }
+
+    @Override
+    public boolean onSeatUnPressed(Figure seat) {
+        seat.resetState();
+        mEventMapView.updateSeatColor(seat);
+        return true;
     }
 
     @Override
@@ -82,8 +104,8 @@ public class EventMapActivity extends Activity implements EventMapView.EventMapC
         super.onSaveInstanceState(outState);
 
         ArrayList<Long> selectedPlaceIds = new ArrayList<Long>();
-        for (Seat seat : mEventMap.getSeats()) {
-            if (seat.getState() == Seat.State.SELECTED) {
+        for (Figure seat : mEventMap.getSeats()) {
+            if (seat.getState() == Figure.State.SELECTED) {
                 selectedPlaceIds.add(seat.getPlaceId());
             }
         }
@@ -92,7 +114,7 @@ public class EventMapActivity extends Activity implements EventMapView.EventMapC
     }
 
 
-    private EventMap<Seat> loadEventMap() {
+    private EventMap<Figure> loadEventMap() {
         Hall hall;
 
         try {
@@ -122,26 +144,27 @@ public class EventMapActivity extends Activity implements EventMapView.EventMapC
             }
         }
 
-        EventMap<Seat> eventMap = new EventMap<Seat>(mapWidth, mapHeight);
+        EventMap<Figure> eventMap = new EventMap<Figure>(mapWidth, mapHeight);
 
-        Map<Seat.State, Integer> colorMapBase = new HashMap<Seat.State, Integer>();
-        colorMapBase.put(Seat.State.SELECTED, DEFAULT_SELECTED_PLACE_COLOR);
-        colorMapBase.put(Seat.State.NOT_AVAILABLE, DEFAULT_NOT_AVAILABLE_PLACE_COLOR);
+        Map<Figure.State, Integer> colorMapBase = new HashMap<Figure.State, Integer>();
+        colorMapBase.put(Figure.State.SELECTED, DEFAULT_SELECTED_PLACE_COLOR);
+        colorMapBase.put(Figure.State.NOT_AVAILABLE, DEFAULT_NOT_AVAILABLE_PLACE_COLOR);
 
         for (Hall.Sector sector : hall.sectors) {
             for (Hall.Row row : sector.rows) {
                 for (Hall.Place place : row.places) {
                     RectF rect = new RectF(place.x, place.y, place.x + place.width, place.y + place.height);
 
-                    Map<Seat.State, Integer> colorMap = new HashMap<Seat.State, Integer>(colorMapBase);
+                    Map<Figure.State, Integer> colorMap = new HashMap<Figure.State, Integer>(colorMapBase);
 
                     if (place.prices == null || place.prices.isEmpty()) {
                         Log.w(TAG, "Place id " + place.placeId + " has no prices");
                         continue;
                     }
-                    colorMap.put(Seat.State.AVAILABLE, 0xFF000000 | place.prices.get(0).color);
+                    colorMap.put(Figure.State.AVAILABLE, 0xFF000000 | place.prices.get(0).color);
+                    colorMap.put(Figure.State.PRESSED, DEFAULT_PRESSED_PLACE_COLOR);
 
-                    Seat seat = new Seat(rect, colorMap, place.placeId, row.number, place.number, place.status == 0 ? Seat.State.AVAILABLE : Seat.State.NOT_AVAILABLE);
+                    Figure seat = new Figure(rect, colorMap, place.placeId, row.number, place.number, place.status == 0 ? Figure.State.AVAILABLE : Figure.State.NOT_AVAILABLE);
                     eventMap.add(seat);
                 }
             }

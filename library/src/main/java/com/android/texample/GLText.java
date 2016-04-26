@@ -16,16 +16,23 @@ import android.graphics.Typeface;
 import android.opengl.GLUtils;
 
 import javax.microedition.khronos.opengles.GL10;
+import java.util.ArrayList;
+import java.util.List;
 
 public class GLText {
 
-    //--Constants--//
-    public final static int CHAR_START = 32;           // First Character (ASCII Code)
-    public final static int CHAR_END = 126;            // Last Character (ASCII Code)
-    public final static int CHAR_CNT = (((CHAR_END - CHAR_START) + 1) + 1);  // Character Count (Including Character to use for Unknown)
+    private static final List<Character> CHARS = new ArrayList<Character>();
 
-    public final static int CHAR_NONE = 32;            // Character to Use for Unknown (ASCII Code)
-    public final static int CHAR_UNKNOWN = (CHAR_CNT - 1);  // Index of the Unknown Character
+    static {
+        for (int i = 32; i <= 126; i++) {
+            CHARS.add((char) i);
+        }
+        for (int i = 0x410; i <= 0x44F; i++) {
+            CHARS.add((char) i);
+        }
+    }
+
+    public final static int CHAR_UNKNOWN = CHARS.indexOf('?');  // Index of the Unknown Character
 
     public final static int FONT_SIZE_MIN = 6;         // Minumum Font Size (Pixels)
     public final static int FONT_SIZE_MAX = 180;       // Maximum Font Size (Pixels)
@@ -65,8 +72,8 @@ public class GLText {
 
         batch = new SpriteBatch(gl, CHAR_BATCH_SIZE);  // Create Sprite Batch (with Defined Size)
 
-        charWidths = new float[CHAR_CNT];               // Create the Array of Character Widths
-        charRgn = new TextureRegion[CHAR_CNT];          // Create the Array of Character Regions
+        charWidths = new float[CHARS.size()];               // Create the Array of Character Widths
+        charRgn = new TextureRegion[CHARS.size()];          // Create the Array of Character Regions
 
         // initialize remaining members
         fontPadX = 0;
@@ -126,7 +133,7 @@ public class GLText {
         charWidthMax = charHeight = 0;                  // Reset Character Width/Height Maximums
         float[] w = new float[2];                       // Working Width Value
         int cnt = 0;                                    // Array Counter
-        for (char c = CHAR_START; c <= CHAR_END; c++) {  // FOR Each Character
+        for (char c : CHARS) {  // FOR Each Character
             s[0] = c;                                    // Set Character
             paint.getTextWidths(s, 0, 1, w);           // Get Character Bounds
             charWidths[cnt] = w[0];                      // Get Width
@@ -134,12 +141,14 @@ public class GLText {
                 charWidthMax = charWidths[cnt];           // Save New Max Width
             cnt++;                                       // Advance Array Counter
         }
+/*
         s[0] = CHAR_NONE;                               // Set Unknown Character
         paint.getTextWidths(s, 0, 1, w);              // Get Character Bounds
         charWidths[cnt] = w[0];                         // Get Width
         if (charWidths[cnt] > charWidthMax)           // IF Width Larger Than Max Width
             charWidthMax = charWidths[cnt];              // Save New Max Width
         cnt++;                                          // Advance Array Counter
+*/
 
         // set character height to font height
         charHeight = fontHeight;                        // Set Character Height
@@ -171,12 +180,12 @@ public class GLText {
         // calculate rows/columns
         // NOTE: while not required for anything, these may be useful to have :)
         colCnt = textureSize / cellWidth;               // Calculate Number of Columns
-        rowCnt = (int) Math.ceil((float) CHAR_CNT / (float) colCnt);  // Calculate Number of Rows
+        rowCnt = (int) Math.ceil((float) CHARS.size() / (float) colCnt);  // Calculate Number of Rows
 
         // render each of the characters to the canvas (ie. build the font map)
         float x = fontPadX;                             // Set Start Position (X)
         float y = (cellHeight - 1) - fontDescent - fontPadY;  // Set Start Position (Y)
-        for (char c = CHAR_START; c <= CHAR_END; c++) {  // FOR Each Character
+        for (char c : CHARS) {  // FOR Each Character
             s[0] = c;                                    // Set Character to Draw
             canvas.drawText(s, 0, 1, x, y, paint);     // Draw Character
             x += cellWidth;                              // Move to Next Character
@@ -185,8 +194,6 @@ public class GLText {
                 y += cellHeight;                          // Move Down a Row
             }
         }
-        s[0] = CHAR_NONE;                               // Set Character to Use for NONE
-        canvas.drawText(s, 0, 1, x, y, paint);        // Draw Character
 
         // generate a new texture
         int[] textureIds = new int[1];                  // Array to Get Texture Id
@@ -210,7 +217,7 @@ public class GLText {
         // setup the array of character texture regions
         x = 0;                                          // Initialize X
         y = 0;                                          // Initialize Y
-        for (int c = 0; c < CHAR_CNT; c++) {         // FOR Each Character (On Texture)
+        for (int c = 0; c < CHARS.size(); c++) {         // FOR Each Character (On Texture)
             charRgn[c] = new TextureRegion(textureSize, textureSize, x, y, cellWidth - 1, cellHeight - 1);  // Create Region for Character
             x += cellWidth;                              // Move to Next Char (Cell)
             if (x + cellWidth > textureSize) {
@@ -263,8 +270,8 @@ public class GLText {
         x += (chrWidth / 2.0f) - (fontPadX * scaleX);  // Adjust Start X
         y += (chrHeight / 2.0f) - (fontPadY * scaleY);  // Adjust Start Y
         for (int i = 0; i < len; i++) {              // FOR Each Character in String
-            int c = (int) text.charAt(i) - CHAR_START;  // Calculate Character Index (Offset by First Char in Font)
-            if (c < 0 || c >= CHAR_CNT)                // IF Character Not In Font
+            int c = CHARS.indexOf(text.charAt(i));  // Calculate Character Index (Offset by First Char in Font)
+            if (c == -1)                          // IF Character Not In Font
                 c = CHAR_UNKNOWN;                         // Set to Unknown Character Index
             batch.drawSprite(x, y, chrWidth, chrHeight, charRgn[c]);  // Draw the Character
             x += (charWidths[c] + spaceX) * scaleX;    // Advance X Position by Scaled Character Width
@@ -342,7 +349,9 @@ public class GLText {
         float len = 0.0f;                               // Working Length
         int strLen = text.length();                     // Get String Length (Characters)
         for (int i = 0; i < strLen; i++) {           // For Each Character in String (Except Last
-            int c = (int) text.charAt(i) - CHAR_START;  // Calculate Character Index (Offset by First Char in Font)
+            int c = CHARS.indexOf(text.charAt(i));  // Calculate Character Index (Offset by First Char in Font)
+            if (c == -1)                          // IF Character Not In Font
+                c = CHAR_UNKNOWN;                         // Set to Unknown Character Index
             len += (charWidths[c] * scaleX);           // Add Scaled Character Width to Total Length
         }
         len += (strLen > 1 ? ((strLen - 1) * spaceX) * scaleX : 0);  // Add Space Length
@@ -356,7 +365,9 @@ public class GLText {
     // A: chr - the character to get width for
     // R: the requested character size (scaled)
     public float getCharWidth(char chr) {
-        int c = chr - CHAR_START;                       // Calculate Character Index (Offset by First Char in Font)
+        int c = CHARS.indexOf(chr);  // Calculate Character Index (Offset by First Char in Font)
+        if (c == -1)                          // IF Character Not In Font
+            c = CHAR_UNKNOWN;                         // Set to Unknown Character Index
         return (charWidths[c] * scaleX);              // Return Scaled Character Width
     }
 

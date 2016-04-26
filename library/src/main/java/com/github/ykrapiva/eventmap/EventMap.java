@@ -21,7 +21,7 @@ import java.nio.FloatBuffer;
 import java.nio.ShortBuffer;
 import java.util.*;
 
-public class EventMap<T extends EventMapSeat> {
+public class EventMap<T extends EventMapFigure> {
     @SuppressWarnings("unused")
     private static final String TAG = EventMap.class.getSimpleName();
 
@@ -35,16 +35,16 @@ public class EventMap<T extends EventMapSeat> {
     // Max Bitmap size the device can decode
     private final int mMaxBitmapSize;
 
-    private final Map<EventMapSeat.ViewType, List<T>> mSeats = new HashMap<EventMapSeat.ViewType, List<T>>();
+    private final Map<FigureType, List<T>> mSeats = new HashMap<FigureType, List<T>>();
 
     // Data for rendering seats
-    private final Map<EventMapSeat.ViewType, FloatBuffer> mSeatVertexBuffers = new HashMap<EventMapSeat.ViewType, FloatBuffer>();
-    private final Map<EventMapSeat.ViewType, ShortBuffer> mSeatIndicesBuffers = new HashMap<EventMapSeat.ViewType, ShortBuffer>();
-    private final Map<EventMapSeat.ViewType, FloatBuffer> mSeatColorBuffers = new HashMap<EventMapSeat.ViewType, FloatBuffer>();
-    private final Map<EventMapSeat.ViewType, FloatBuffer> mSeatTextureBuffers = new HashMap<EventMapSeat.ViewType, FloatBuffer>();
-    private final Map<EventMapSeat.ViewType, Integer[]> mSeatTextures = new HashMap<EventMapSeat.ViewType, Integer[]>();
-    private final Map<EventMapSeat.ViewType, Integer> mSeatTextureIds = new HashMap<EventMapSeat.ViewType, Integer>();
-    private final Map<EventMapSeat.ViewType, Bitmap> mSeatTextureBitmaps = new HashMap<EventMapSeat.ViewType, Bitmap>();
+    private final Map<FigureType, FloatBuffer> mSeatVertexBuffers = new HashMap<FigureType, FloatBuffer>();
+    private final Map<FigureType, ShortBuffer> mSeatIndicesBuffers = new HashMap<FigureType, ShortBuffer>();
+    private final Map<FigureType, FloatBuffer> mSeatColorBuffers = new HashMap<FigureType, FloatBuffer>();
+    private final Map<FigureType, FloatBuffer> mSeatTextureBuffers = new HashMap<FigureType, FloatBuffer>();
+    private final Map<FigureType, Integer[]> mSeatTextures = new HashMap<FigureType, Integer[]>();
+    private final Map<FigureType, Integer> mSeatTextureIds = new HashMap<FigureType, Integer>();
+    private final Map<FigureType, Bitmap> mSeatTextureBitmaps = new HashMap<FigureType, Bitmap>();
 
     // // Data for rendering background
     private FloatBuffer mBackgroundTextureBuffer;
@@ -71,16 +71,16 @@ public class EventMap<T extends EventMapSeat> {
 
     public EventMap(float eventMapWidth, float eventMapHeight) {
         this.mEventMapBounds = new RectF(-eventMapWidth / 2.0f, eventMapHeight / 2.0f, eventMapWidth / 2.0f, -eventMapHeight / 2.0f);
-        this.mSeatTextureBitmaps.put(EventMapSeat.ViewType.CIRCLE, createCircleTexture());
+        this.mSeatTextureBitmaps.put(FigureType.CIRCLE, createCircleTexture());
         this.mMaxBitmapSize = GLUtils.getMaxTextureSize();
     }
 
     public void add(Collection<T> seats) {
         for (T seat : seats) {
-            List<T> seatList = mSeats.get(seat.getViewType());
+            List<T> seatList = mSeats.get(seat.getFigureType());
             if (seatList == null) {
                 seatList = new ArrayList<T>();
-                mSeats.put(seat.getViewType(), seatList);
+                mSeats.put(seat.getFigureType(), seatList);
             }
 
             seatList.add(seat);
@@ -248,7 +248,7 @@ public class EventMap<T extends EventMapSeat> {
         mSeatIndicesBuffers.clear();
         mSeatTextureBuffers.clear();
 
-        for (EventMapSeat.ViewType viewType : mSeats.keySet()) {
+        for (FigureType viewType : mSeats.keySet()) {
             Integer[] textureIds = mSeatTextures.remove(viewType);
             if (textureIds != null) {
                 gl.glDeleteTextures(1, toPrimitiveArray(textureIds), 0);
@@ -267,7 +267,7 @@ public class EventMap<T extends EventMapSeat> {
         }
         mGlTextMapBySize.clear();
 
-        for (Map.Entry<EventMapSeat.ViewType, List<T>> entry : mSeats.entrySet()) {
+        for (Map.Entry<FigureType, List<T>> entry : mSeats.entrySet()) {
             final short[] indexList = SQUARE_VERTICES_ORDER_TEMPLATE.clone();
             final float[] colors = new float[NUM_COLOR_COMPONENTS];
             final float[] vertices = new float[NUM_COORDS_PER_VERTEX * NUM_VERTICES_IN_SQUARE];
@@ -278,7 +278,7 @@ public class EventMap<T extends EventMapSeat> {
                     1.0f, 0.0f
             };
 
-            EventMapSeat.ViewType viewType = entry.getKey();
+            FigureType viewType = entry.getKey();
             List<T> seats = entry.getValue();
 
             // Init vertex buffer
@@ -423,8 +423,8 @@ public class EventMap<T extends EventMapSeat> {
             mSeatsInitialized = true;
         }
 
-        for (Map.Entry<EventMapSeat.ViewType, List<T>> entry : mSeats.entrySet()) {
-            EventMapSeat.ViewType viewType = entry.getKey();
+        for (Map.Entry<FigureType, List<T>> entry : mSeats.entrySet()) {
+            FigureType viewType = entry.getKey();
 
             FloatBuffer vertexBuffer = mSeatVertexBuffers.get(viewType);
             FloatBuffer colorBuffer = mSeatColorBuffers.get(viewType);
@@ -470,10 +470,10 @@ public class EventMap<T extends EventMapSeat> {
             gl.glDisable(GL10.GL_TEXTURE_2D);
         }
 
-        drawSeatCaptions(gl);
+        drawSeatTitles(gl);
     }
 
-    private void drawSeatCaptions(GL10 gl) {
+    private void drawSeatTitles(GL10 gl) {
         // enable texture + alpha blending
         // NOTE: this is required for text rendering! we could incorporate it into
         // the GLText class, but then it would be called multiple times (which impacts performance).
@@ -483,13 +483,13 @@ public class EventMap<T extends EventMapSeat> {
 
         // Draw captions
         for (GLText glText : mGlTextMapBySize.values()) {
-            glText.begin(0.0f, 0.0f, 0.0f, 1.0f); // Begin Text Rendering
+            glText.begin(1.0f, 1.0f, 1.0f, 1.0f); // Begin Text Rendering
         }
 
         float[] coords = new float[NUM_COORDS_PER_VERTEX * NUM_VERTICES_IN_SQUARE];
 
-        for (Map.Entry<EventMapSeat.ViewType, List<T>> entry : mSeats.entrySet()) {
-            EventMapSeat.ViewType viewType = entry.getKey();
+        for (Map.Entry<FigureType, List<T>> entry : mSeats.entrySet()) {
+            FigureType viewType = entry.getKey();
             List<T> seats = entry.getValue();
 
             FloatBuffer vertexBuffer = mSeatVertexBuffers.get(viewType);
@@ -497,7 +497,7 @@ public class EventMap<T extends EventMapSeat> {
             for (int i = 0; i < seats.size(); i++) {
                 T square = seats.get(i);
 
-                String caption = square.getCaption();
+                String caption = square.getTitle();
                 GLText glText = mGlTextMapBySize.get(calcTextSize(square.getRect()));
 
                 if (!TextUtils.isEmpty(caption) && glText != null) {
@@ -505,9 +505,15 @@ public class EventMap<T extends EventMapSeat> {
                     vertexBuffer.get(coords, 0, NUM_COORDS_PER_VERTEX * NUM_VERTICES_IN_SQUARE);
 
                     RectF rect = new RectF(coords[0], coords[1], coords[6], coords[7]);
+                    glText.setScale(1.0f);
                     float strWidth = glText.getLength(caption);
                     float strHeight = glText.getHeight();
-                    glText.draw(caption, rect.centerX() - strWidth / 2.0f, rect.centerY() - strHeight / 2.0f);
+                    if (strWidth > strHeight) {
+                        glText.setScale(Math.abs(rect.width()) / strWidth);
+                    } else {
+                        glText.setScale(Math.abs(rect.height()) / strHeight);
+                    }
+                    glText.drawC(caption, rect.centerX(), rect.centerY());
                 }
             }
         }
@@ -524,15 +530,15 @@ public class EventMap<T extends EventMapSeat> {
     public T findIntersection(GL10 gl, Ray ray) {
         float[] coords = new float[NUM_VERTICES_IN_SQUARE * NUM_COORDS_PER_VERTEX];
 
-        for (Map.Entry<EventMapSeat.ViewType, List<T>> entry : mSeats.entrySet()) {
-            EventMapSeat.ViewType viewType = entry.getKey();
+        for (Map.Entry<FigureType, List<T>> entry : mSeats.entrySet()) {
+            FigureType viewType = entry.getKey();
             List<T> seats = entry.getValue();
 
-            FloatBuffer vertextBuffer = mSeatVertexBuffers.get(viewType);
+            FloatBuffer vertexBuffer = mSeatVertexBuffers.get(viewType);
 
             for (int i = 0; i < seats.size(); i++) {
-                vertextBuffer.position(i * coords.length);
-                vertextBuffer.get(coords, 0, coords.length);
+                vertexBuffer.position(i * coords.length);
+                vertexBuffer.get(coords, 0, coords.length);
 
                 if (isIntersected(gl, ray, coords)) {
                     return seats.get(i);
@@ -589,8 +595,8 @@ public class EventMap<T extends EventMapSeat> {
     }
 
     void updateColor(T seat) {
-        FloatBuffer colorBuffer = mSeatColorBuffers.get(seat.getViewType());
-        List<T> seats = mSeats.get(seat.getViewType());
+        FloatBuffer colorBuffer = mSeatColorBuffers.get(seat.getFigureType());
+        List<T> seats = mSeats.get(seat.getFigureType());
 
         if (colorBuffer != null && seats != null) {
             int seatIndex = seats.indexOf(seat);
@@ -658,7 +664,9 @@ public class EventMap<T extends EventMapSeat> {
     }
 
     private int calcTextSize(RectF rect) {
-        return (int) Math.min(Math.abs(rect.width()), Math.abs(rect.height())) / 2;
+        int textSize = (int) Math.min(Math.abs(rect.width()), Math.abs(rect.height())) / 2;
+        textSize = Math.min(textSize, 24);
+        return textSize;
     }
 
     private int findBiggerPowerOfTwo(int value) {

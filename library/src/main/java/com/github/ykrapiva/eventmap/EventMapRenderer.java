@@ -11,7 +11,7 @@ import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 import java.util.concurrent.CountDownLatch;
 
-class EventMapRenderer<T extends EventMapSeat> implements GLSurfaceView.Renderer {
+class EventMapRenderer<T extends EventMapFigure> implements GLSurfaceView.Renderer {
     @SuppressWarnings("unused")
     private static final String TAG = EventMapRenderer.class.getSimpleName();
 
@@ -42,6 +42,7 @@ class EventMapRenderer<T extends EventMapSeat> implements GLSurfaceView.Renderer
     // Click stuff
     private PointF mClickPoint;
     private T mClickedObject;
+    // Can somebody help to get rid of this latch ?
     private CountDownLatch mClickedObjectResultAvailableLatch;
 
     @Override

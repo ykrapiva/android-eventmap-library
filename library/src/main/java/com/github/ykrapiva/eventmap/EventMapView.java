@@ -14,7 +14,7 @@ import com.github.ykrapiva.eventmap.gl.MatrixTrackingGL;
 import javax.microedition.khronos.opengles.GL;
 import java.util.concurrent.CountDownLatch;
 
-public class EventMapView<T extends EventMapSeat> extends GLSurfaceView {
+public class EventMapView<T extends EventMapFigure> extends GLSurfaceView {
     private static final String TAG = EventMapView.class.getSimpleName();
 
     private static final float FLING_VELOCITY_DOWNSCALE = 1.0f;
@@ -25,7 +25,8 @@ public class EventMapView<T extends EventMapSeat> extends GLSurfaceView {
     private Scroller mScroller;
     private ValueAnimator mScrollAnimator;
     private EventMap<T> mEventMap;
-    private EventMapClickListener<T> mClickListener;
+    private EventMapSeatTouchListener<T> mSeatTouchListener;
+    private T lastSeatPressed;
 
     public EventMapView(Context context) {
         super(context);
@@ -72,11 +73,13 @@ public class EventMapView<T extends EventMapSeat> extends GLSurfaceView {
     }
 
     public void setBackgroundColor(int color) {
-        mRenderer.setClearColor(color);
+        if (mRenderer != null) {
+            mRenderer.setClearColor(color);
+        }
     }
 
-    public void setClickListener(EventMapClickListener<T> mClickListener) {
-        this.mClickListener = mClickListener;
+    public void setClickListener(EventMapSeatTouchListener<T> mClickListener) {
+        this.mSeatTouchListener = mClickListener;
     }
 
     public void updateSeatColor(T seat) {
@@ -99,6 +102,7 @@ public class EventMapView<T extends EventMapSeat> extends GLSurfaceView {
                 case MotionEvent.ACTION_UP:
                     // User is done scrolling, it's now safe to do things like autocenter
                     stopScrolling();
+                    notifyLastPressedSeatUnPressed();
                     break;
             }
         }
@@ -106,10 +110,26 @@ public class EventMapView<T extends EventMapSeat> extends GLSurfaceView {
         return scaleResult | result;
     }
 
-    private void onSeatClicked(T seat) {
-        if (mClickListener != null) {
-            mClickListener.onSeatClicked(seat);
+    private void notifyOnSeatPressed(T seat) {
+        if (mSeatTouchListener != null && seat != null) {
+            mSeatTouchListener.onSeatPressed(seat);
         }
+    }
+
+    private void notifyOnSeatClicked(T seat) {
+        if (mSeatTouchListener != null && seat != null) {
+            mSeatTouchListener.onSeatClicked(seat);
+        }
+
+        lastSeatPressed = null;
+    }
+
+    private void notifyLastPressedSeatUnPressed() {
+        if (mSeatTouchListener != null && lastSeatPressed != null) {
+            mSeatTouchListener.onSeatUnPressed(lastSeatPressed);
+        }
+
+        lastSeatPressed = null;
     }
 
     public void setEventMap(EventMap<T> eventMap) {
@@ -159,6 +179,7 @@ public class EventMapView<T extends EventMapSeat> extends GLSurfaceView {
         return !mScroller.isFinished();
     }
 
+
     private class GestureListener extends GestureDetector.SimpleOnGestureListener {
         @Override
         public boolean onScroll(MotionEvent e1, MotionEvent e2, final float distanceX, final float distanceY) {
@@ -173,7 +194,52 @@ public class EventMapView<T extends EventMapSeat> extends GLSurfaceView {
             mRenderer.setOffset(offsetX, offsetY);
 
             requestRender();
+            notifyLastPressedSeatUnPressed();
+
             return true;
+        }
+
+        @Override
+        public boolean onDown(MotionEvent e) {
+            if (isAnimationRunning()) {
+                stopScrolling();
+            }
+
+//            Log.v(TAG, "onDown()");
+
+            return true;
+        }
+
+        @Override
+        public void onShowPress(MotionEvent e) {
+//            Log.v(TAG, "onShowPress()");
+
+            final CountDownLatch clickResultReadyLatch = new CountDownLatch(1);
+
+            int[] location = new int[2];
+
+            getLocationOnScreen(location);
+            float rawX = e.getRawX();
+            float rawY = e.getRawY();
+            final float x = rawX - location[0];
+            final float y = rawY - location[1];
+
+            queueEvent(new Runnable() {
+                @Override
+                public void run() {
+                    mRenderer.onClick(x, y, clickResultReadyLatch);
+                }
+            });
+
+            requestRender();
+
+            try {
+                clickResultReadyLatch.await();
+                T seat = mRenderer.getClickedObject();
+                notifyOnSeatPressed(seat);
+            } catch (InterruptedException e1) {
+                // ignore
+            }
         }
 
         @Override
@@ -200,9 +266,7 @@ public class EventMapView<T extends EventMapSeat> extends GLSurfaceView {
             try {
                 clickResultReadyLatch.await();
                 T seat = mRenderer.getClickedObject();
-                if (seat != null) {
-                    onSeatClicked(seat);
-                }
+                notifyOnSeatClicked(seat);
             } catch (InterruptedException e1) {
                 // ignore
             }
@@ -230,14 +294,8 @@ public class EventMapView<T extends EventMapSeat> extends GLSurfaceView {
                 mScrollAnimator.start();
             }
 
-            return true;
-        }
+            notifyLastPressedSeatUnPressed();
 
-        @Override
-        public boolean onDown(MotionEvent e) {
-            if (isAnimationRunning()) {
-                stopScrolling();
-            }
             return true;
         }
     }
@@ -252,7 +310,11 @@ public class EventMapView<T extends EventMapSeat> extends GLSurfaceView {
         }
     }
 
-    public interface EventMapClickListener<T> {
+    public interface EventMapSeatTouchListener<T> {
         void onSeatClicked(T seat);
+
+        void onSeatPressed(T seat);
+
+        void onSeatUnPressed(T seat);
     }
 }
