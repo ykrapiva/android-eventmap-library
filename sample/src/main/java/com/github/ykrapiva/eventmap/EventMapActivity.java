@@ -64,7 +64,7 @@ public class EventMapActivity extends Activity implements EventMapView.EventMapS
     }
 
     @Override
-    public boolean onSeatClicked(Figure seat) {
+    public void onSeatClicked(Figure seat) {
         switch (seat.getState()) {
             case SELECTED:
                 seat.resetState();
@@ -78,25 +78,22 @@ public class EventMapActivity extends Activity implements EventMapView.EventMapS
         }
 
         mEventMapView.updateSeatColor(seat);
-        return true;
     }
 
     @Override
-    public boolean onSeatPressed(Figure seat) {
+    public void onSeatPressed(Figure seat) {
         switch (seat.getState()) {
             case AVAILABLE:
                 seat.setState(Figure.State.PRESSED);
                 break;
         }
         mEventMapView.updateSeatColor(seat);
-        return true;
     }
 
     @Override
-    public boolean onSeatUnPressed(Figure seat) {
+    public void onSeatUnPressed(Figure seat) {
         seat.resetState();
         mEventMapView.updateSeatColor(seat);
-        return true;
     }
 
     @Override
