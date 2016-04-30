@@ -481,12 +481,12 @@ public class EventMap<T extends EventMapFigure> {
         gl.glEnable(GL10.GL_BLEND);                   // Enable Alpha Blend
         gl.glBlendFunc(GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA);  // Set Alpha Blend Function
 
+        float[] coords = new float[NUM_COORDS_PER_VERTEX * NUM_VERTICES_IN_SQUARE];
+
         // Draw captions
         for (GLText glText : mGlTextMapBySize.values()) {
-            glText.begin(1.0f, 1.0f, 1.0f, 1.0f); // Begin Text Rendering
+            glText.begin(); // Begin Text Rendering
         }
-
-        float[] coords = new float[NUM_COORDS_PER_VERTEX * NUM_VERTICES_IN_SQUARE];
 
         for (Map.Entry<FigureType, List<T>> entry : mSeats.entrySet()) {
             FigureType viewType = entry.getKey();
@@ -495,10 +495,10 @@ public class EventMap<T extends EventMapFigure> {
             FloatBuffer vertexBuffer = mSeatVertexBuffers.get(viewType);
 
             for (int i = 0; i < seats.size(); i++) {
-                T square = seats.get(i);
+                T seat = seats.get(i);
 
-                String caption = square.getTitle();
-                GLText glText = mGlTextMapBySize.get(calcTextSize(square.getRect()));
+                String caption = seat.getTitle();
+                GLText glText = mGlTextMapBySize.get(calcTextSize(seat.getRect()));
 
                 if (!TextUtils.isEmpty(caption) && glText != null) {
                     vertexBuffer.position(i * NUM_COORDS_PER_VERTEX * NUM_VERTICES_IN_SQUARE);
@@ -513,7 +513,8 @@ public class EventMap<T extends EventMapFigure> {
                     } else {
                         glText.setScale(Math.abs(rect.height()) / strHeight);
                     }
-                    glText.drawC(caption, rect.centerX(), rect.centerY());
+
+                    glText.drawC(caption, rect.centerX(), rect.centerY(), seat.getTitleColor());
                 }
             }
         }

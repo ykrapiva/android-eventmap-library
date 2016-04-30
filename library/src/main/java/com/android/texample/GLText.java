@@ -17,7 +17,9 @@ import android.opengl.GLUtils;
 
 import javax.microedition.khronos.opengles.GL10;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class GLText {
 
@@ -41,7 +43,7 @@ public class GLText {
 
     //--Members--//
     GL10 gl;                                           // GL10 Instance
-    SpriteBatch batch;                                 // Batch Renderer
+    Map<Integer, SpriteBatch> batchColorMap = new HashMap<Integer, SpriteBatch>();           // Batch Renderer
 
     int fontPadX, fontPadY;                            // Font Padding (Pixels; On Each Side, ie. Doubled on Both X+Y Axis)
 
@@ -69,8 +71,6 @@ public class GLText {
     // A: gl - OpenGL ES 10 Instance
     public GLText(GL10 gl) {
         this.gl = gl;                                   // Save the GL10 Instance
-
-        batch = new SpriteBatch(gl, CHAR_BATCH_SIZE);  // Create Sprite Batch (with Defined Size)
 
         charWidths = new float[CHARS.size()];               // Create the Array of Character Widths
         charRgn = new TextureRegion[CHARS.size()];          // Create the Array of Character Regions
@@ -235,26 +235,17 @@ public class GLText {
 
     //--Begin/End Text Drawing--//
     // D: call these methods before/after (respectively all draw() calls using a text instance
-    //    NOTE: color is set on a per-batch basis, and fonts should be 8-bit alpha only!!!
-    // A: red, green, blue - RGB values for font (default = 1.0)
-    //    alpha - optional alpha value for font (default = 1.0)
-    // R: [none]
     public void begin() {
-        begin(1.0f, 1.0f, 1.0f, 1.0f);                // Begin with White Opaque
-    }
-
-    public void begin(float alpha) {
-        begin(1.0f, 1.0f, 1.0f, alpha);               // Begin with White (Explicit Alpha)
-    }
-
-    public void begin(float red, float green, float blue, float alpha) {
-        gl.glColor4f(red, green, blue, alpha);        // Set Color+Alpha
         gl.glBindTexture(GL10.GL_TEXTURE_2D, textureId);  // Bind the Texture
-        batch.beginBatch();                             // Begin Batch
+        for (SpriteBatch batch : batchColorMap.values()) {
+            batch.beginBatch();                             // Begin Batch
+        }
     }
 
     public void end() {
-        batch.endBatch();                               // End Batch
+        for (SpriteBatch batch : batchColorMap.values()) {
+            batch.endBatch();                               // End Batch
+        }
         gl.glColor4f(1.0f, 1.0f, 1.0f, 1.0f);         // Restore Default Color/Alpha
     }
 
@@ -263,7 +254,13 @@ public class GLText {
     // A: text - the string to draw
     //    x, y - the x,y position to draw text at (bottom left of text; including descent)
     // R: [none]
-    public void draw(String text, float x, float y) {
+    public void draw(String text, float x, float y, int color) {
+        SpriteBatch batch = batchColorMap.get(color);
+        if (batch == null) {
+            batch = new SpriteBatch(gl, CHAR_BATCH_SIZE, com.github.ykrapiva.eventmap.gl.GLUtils.getFloatColorComponents(color));
+            batchColorMap.put(color, batch);
+        }
+
         float chrHeight = cellHeight * scaleY;          // Calculate Scaled Character Height
         float chrWidth = cellWidth * scaleX;            // Calculate Scaled Character Width
         int len = text.length();                        // Get String Length
@@ -283,20 +280,20 @@ public class GLText {
     // A: text - the string to draw
     //    x, y - the x,y position to draw text at (bottom left of text)
     // R: the total width of the text that was drawn
-    public float drawC(String text, float x, float y) {
+    public float drawC(String text, float x, float y, int color) {
         float len = getLength(text);                  // Get Text Length
-        draw(text, x - (len / 2.0f), y - (getCharHeight() / 2.0f));  // Draw Text Centered
+        draw(text, x - (len / 2.0f), y - (getCharHeight() / 2.0f), color);  // Draw Text Centered
         return len;                                     // Return Length
     }
 
-    public float drawCX(String text, float x, float y) {
+    public float drawCX(String text, float x, float y, int color) {
         float len = getLength(text);                  // Get Text Length
-        draw(text, x - (len / 2.0f), y);            // Draw Text Centered (X-Axis Only)
+        draw(text, x - (len / 2.0f), y, color);            // Draw Text Centered (X-Axis Only)
         return len;                                     // Return Length
     }
 
-    public void drawCY(String text, float x, float y) {
-        draw(text, x, y - (getCharHeight() / 2.0f));  // Draw Text Centered (Y-Axis Only)
+    public void drawCY(String text, float x, float y, int color) {
+        draw(text, x, y - (getCharHeight() / 2.0f), color);  // Draw Text Centered (Y-Axis Only)
     }
 
     //--Set Scale--//
@@ -395,19 +392,10 @@ public class GLText {
         return (fontHeight * scaleY);                 // Return Font Height (Actual)
     }
 
-    //--Draw Font Texture--//
-    // D: draw the entire font texture (NOTE: for testing purposes only)
-    // A: width, height - the width and height of the area to draw to. this is used
-    //    to draw the texture to the top-left corner.
-    public void drawTexture(int width, int height) {
-        batch.beginBatch(textureId);                  // Begin Batch (Bind Texture)
-        batch.drawSprite(textureSize / 2, height - (textureSize / 2), textureSize, textureSize, textureRgn);  // Draw
-        batch.endBatch();                               // End Batch
-    }
-
     public void destroy(GL10 gl) {
         if (textureId != -1) {
             gl.glDeleteTextures(1, new int[]{textureId}, 0);
         }
+        batchColorMap.clear();
     }
 }

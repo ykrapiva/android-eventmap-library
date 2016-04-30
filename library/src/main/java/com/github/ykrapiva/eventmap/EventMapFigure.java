@@ -1,11 +1,13 @@
 package com.github.ykrapiva.eventmap;
 
+import android.graphics.Color;
 import android.graphics.RectF;
 
 public class EventMapFigure {
     private final FigureType figureType;
     private final RectF rect;
     private int color;
+    private int titleColor = Color.BLACK;
     private String title;
 
     public EventMapFigure(RectF coordinates) {
@@ -44,5 +46,13 @@ public class EventMapFigure {
 
     public String getTitle() {
         return title;
+    }
+
+    public int getTitleColor() {
+        return titleColor;
+    }
+
+    public void setTitleColor(int titleColor) {
+        this.titleColor = titleColor;
     }
 }

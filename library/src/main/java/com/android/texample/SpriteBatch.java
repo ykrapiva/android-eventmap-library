@@ -17,17 +17,20 @@ public class SpriteBatch {
     int maxSprites;                                    // Maximum Sprites Allowed in Buffer
     int numSprites;                                    // Number of Sprites Currently in Buffer
 
+    float[] color4f;
+
     //--Constructor--//
     // D: prepare the sprite batcher for specified maximum number of sprites
     // A: gl - the gl instance to use for rendering
     //    maxSprites - the maximum allowed sprites per batch
-    public SpriteBatch(GL10 gl, int maxSprites) {
+    public SpriteBatch(GL10 gl, int maxSprites, float[] color4f) {
         this.gl = gl;                                   // Save GL Instance
         this.vertexBuffer = new float[maxSprites * VERTICES_PER_SPRITE * VERTEX_SIZE];  // Create Vertex Buffer
         this.vertices = new Vertices(gl, maxSprites * VERTICES_PER_SPRITE, maxSprites * INDICES_PER_SPRITE, false, true, false);  // Create Rendering Vertices
         this.bufferIndex = 0;                           // Reset Buffer Index
         this.maxSprites = maxSprites;                   // Save Maximum Sprites
         this.numSprites = 0;                            // Clear Sprite Counter
+        this.color4f = color4f;
 
         short[] indices = new short[maxSprites * INDICES_PER_SPRITE];  // Create Temp Index Buffer
         int len = indices.length;                       // Get Index Buffer Length
@@ -67,6 +70,7 @@ public class SpriteBatch {
         if (numSprites > 0) {                        // IF Any Sprites to Render
             vertices.setVertices(vertexBuffer, 0, bufferIndex);  // Set Vertices from Buffer
             vertices.bind();                             // Bind Vertices
+            gl.glColor4f(color4f[0], color4f[1], color4f[2], color4f[3]);
             vertices.draw(GL10.GL_TRIANGLES, 0, numSprites * INDICES_PER_SPRITE);  // Render Batched Sprites
             vertices.unbind();                           // Unbind Vertices
         }
