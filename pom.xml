@@ -9,7 +9,7 @@
 
     <groupId>com.github.ykrapiva.eventmap</groupId>
     <artifactId>eventmap-library-parent</artifactId>
-    <version>1.0.2-SNAPSHOT</version>
+    <version>1.0.2</version>
     <packaging>pom</packaging>
 
     <name>Event Map - Parent</name>
@@ -33,7 +33,7 @@
         <connection>scm:git:https://github.com/ykrapiva/android-eventmap-library.git</connection>
         <developerConnection>scm:git:https://github.com/ykrapiva/android-eventmap-library.git</developerConnection>
         <url>https://github.com/ykrapiva/android-eventmap-library</url>
-        <tag>HEAD</tag>
+        <tag>eventmap-library-parent-1.0.2</tag>
     </scm>
 
     <properties>
